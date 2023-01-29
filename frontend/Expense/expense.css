@@ -45,20 +45,3 @@ label {
     margin: 10px 10px;
     transition: background-color .3s ease-in-out;
   }
-
-  /* .delete-btn {
-    cursor: pointer;
-    background-color: #e74c3c;
-    border: 0;
-    border-radius: 5px;
-    color: #fff;
-    font-size: 20px;
-    line-height: 35px;
-    padding: 2px 5px;
-    position: absolute;
-    top: 50%;
-    right: -6.5%;
-    transform: translate(100%, -50%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  } */

@@ -11,7 +11,7 @@ async function saveToDB(e) {
             category: e.target.category.value
         }
         console.log(addExpense)
-        const response = await axios.post('http://13.112.50.124:3000expense/addExpense', addExpense, { headers: {"Authorization" : token }}).then(response => {
+        const response = await axios.post('http://localhost:3000/expense/addExpense', addExpense, { headers: {"Authorization" : token }}).then(response => {
                 alert(response.data.message)
                 addNewExpensetoUI(response.data.expense);
         })
@@ -24,7 +24,7 @@ async function saveToDB(e) {
 // // DOMContentLoaded
 // window.addEventListener('DOMContentLoaded', async () => {
 //     try{
-//         await axios.get('http://13.112.50.124/:3000/expense/getExpense', { headers: {"Authorization" : token } }).then(response => {
+//         await axios.get('http://localhost:3000/expense/getExpense', { headers: {"Authorization" : token } }).then(response => {
 //             response.data.expenses.forEach(expense => {
 //                 addNewExpensetoUI(expense);
 //             })
@@ -52,7 +52,7 @@ function displayList(e) {
     listGroup.innerHTML=""
     let getRequest=async()=>await axios({
         method: 'get',
-        url: `http://13.112.50.124:3000expense/expensesData/${pageNo}`,
+        url: `http://localhost:3000/expense/expensesData/${pageNo}`,
         headers: {"Authorization" : token }
     }).then(res=>{
         console.log(res)
@@ -155,7 +155,7 @@ function addNewExpensetoUI(expense) {
 // Delete Expense
 function deleteExpense(e, expenseId) {
     try{
-    axios.delete(`http://13.112.50.124:3000expense/deleteExpense/${expenseId}`, { headers: {"Authorization" : token } }).then((response) => {
+    axios.delete(`http://localhost:3000/expense/deleteExpense/${expenseId}`, { headers: {"Authorization" : token } }).then((response) => {
         removeExpensefromUI(expenseId)
         alert(response.data.message)
     })
@@ -178,19 +178,22 @@ function showError(err){
 
 // Download Expense
 function download(){
-    axios.get('http://13.112.50.124:3000expense/download', { headers: {"Authorization" : token } })
+    axios.get('http://localhost:3000/expense/download', { headers: {"Authorization" : token } })
     .then((response) => {
         if(response.status === 201){
             // the bcakend is essentially sending a download link
             // which if we open in browser, the file would download
-            var a = document.createElement("a");
-            a.href = response.data.fileUrl;
-            a.download = 'myexpense.csv';
-            a.click();
-        } else {
-            throw new Error(response.data.message)
+            const href = URL.createObjectURL(response.data);
+            const link = document.createElement('a');
+            link.href = href;
+            link.setAttribute('download', 'expenses.txt'); //or any other extension
+            document.body.appendChild(link);
+            link.click();
+            // clean up "a" element & remove ObjectURL
+            document.body.removeChild(link);
+            URL.revokeObjectURL(href);
+            console.log(response)
         }
-
     })
     .catch((err) => {
         showError(err)
@@ -198,34 +201,39 @@ function download(){
 }
 
 // Rozorpay
+
 document.getElementById('rzp-button1').onclick = async function (e) {
-    const response  = await axios.get('http://13.112.50.124:3000purchase/premiummembership', { headers: {"Authorization" : token} });
+    const token = localStorage.getItem('token')
+    const response  = await axios.get('http://localhost:3000/purchase/premiummembership', { headers: {"Authorization" : token} });
     console.log(response);
     var options =
     {
      "key": response.data.key_id, // Enter the Key ID generated from the Dashboard
-     "name": "vGroup",
-     "order_id": response.data.order.id, // For one time payment
-     "prefill": {
-       "name": "pradeep",
-       "email": "p@gmail.com",
-       "contact": "0000000000"
-     },
-     "theme": {
-      "color": "#3399cc"
-     },
+     "order_id": response.data.order.id,// For one time payment
      // This handler function will handle the success payment
-     "handler": function (response) {
-         console.log(response);
-         axios.post('http://13.112.50.124/:3000/purchase/updatetransactionstatus',{
+     "prefill": {
+        "name": "pradeep naidu",
+        "email": "vadlamudipradeep2000@gmail.com",
+        "contact": "0000000"
+      },
+     "theme":{
+        "color":"#3399c",
+     },
+     
+     "handler": async function (response) {
+        const res = await axios.post('http://localhost:3000/purchase/updatetransactionstatus',{
              order_id: options.order_id,
              payment_id: response.razorpay_payment_id,
-         }, { headers: {"Authorization" : token} }).then(() => {
-             alert('You are a Premium User Now')
-             window.location.href = "../Expense/expense.html" // change the page on successful login
-         }).catch(() => {
-             alert('Something went wrong. Try Again!!!')
-         })
+             
+         }, { headers: {"Authorization" : token} })
+        
+        console.log(res)
+         alert('You are a Premium User Now')
+         document.getElementById('rzp-button1').style.visibility = "hidden"
+         document.getElementById('message').innerHTML = "You are a premium user "
+         localStorage.setItem('token', res.data.token)
+         showLeaderboard();
+      
      },
   };
   const rzp1 = new Razorpay(options);
@@ -241,9 +249,7 @@ document.getElementById('rzp-button1').onclick = async function (e) {
   alert(response.error.metadata.order_id);
   alert(response.error.metadata.payment_id);
  });
-};
-
-
+}
 
 function showLeaderboard(){
     const inputElement = document.createElement("input")
@@ -254,7 +260,7 @@ function showLeaderboard(){
 
     inputElement.onclick = async() => {
         const token = localStorage.getItem('token')
-        const userLeaderBoardArray = await axios.get('http://13.112.50.124:3000premium/showLeaderBoard', { headers: {"Authorization" : token} })
+        const userLeaderBoardArray = await axios.get('http://localhost:3000/premium/showLeaderBoard', { headers: {"Authorization" : token} })
         console.log(userLeaderBoardArray)
     
 

@@ -1,3 +1,4 @@
+
 async function login(e) {
     try {
     e.preventDefault();
@@ -9,7 +10,7 @@ async function login(e) {
     }
     console.log(loginDetails)
 
-    await axios.post('http://13.112.50.124:3000user/login', loginDetails).then(response => {
+    await axios.post('http://localhost:3000/user/login', loginDetails).then(response => {
         alert(response.data.message)
         // console.log(response)
         localStorage.setItem('token', response.data.token) // to save the token in local storage.
@@ -20,9 +21,9 @@ async function login(e) {
         // JSON.stringify() method converts a JavaScript value to a JSON string.
         document.body.innerHTML += `<div style="color:red;">${err.message}<div>`;
     }
-}
+};
 
-// Forgot Password
+
 function forgotpassword() {
-    window.location.href = "../ForgotPassword/forgotPassword.html"
+    window.location.href = "../ForgetPassword/forgetPassword.html"
 }
